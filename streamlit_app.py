@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import time
 
 # 1. 数据获取与预处理
-
+ts.set_token('69e781cb04e2be652812ccf4adf976dc2cb8b592d1ceb4c4b6732e22')
 def fetch_and_preprocess_data(ETF, asset,start, end):
     """
     获取数据并预处理
