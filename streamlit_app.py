@@ -781,9 +781,9 @@ if st.button('运行优化'):
         # 绘制累计收益贡献图
         fig2 = px.line(overall_contrib_long, x='Date', y='Cumulative_Return', color='Asset',
                       title='资产细分表现',template='plotly_white')
-        fig2.update_layout(**layout_settings)
-        st.dataframe(final_table_percent)
         st.plotly_chart(fig2)
+        st.dataframe(final_table_percent)
+        
         
     else:
         fig_pie,fig_bar=visualize_results('基于ETF的风险平价','等权',
