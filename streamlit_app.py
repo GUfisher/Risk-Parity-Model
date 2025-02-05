@@ -11,6 +11,38 @@ from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 import time
 
+layout_settings = dict(
+    title_font=dict(size=30, family='Arial Black'),
+    xaxis=dict(
+        showgrid=True,
+        gridwidth=0.5,
+        gridcolor='rgba(255, 255, 255, 0.1)',
+        tickfont=dict(color='white'),
+        tickangle=-45,
+        zeroline=False
+    ),
+    yaxis=dict(
+        showgrid=True,
+        gridwidth=0.5,
+        gridcolor='rgba(255, 255, 255, 0.1)',
+        tickfont=dict(color='white'),
+        zeroline=False,
+    ),
+    plot_bgcolor='rgba(10, 10, 10, 0.95)',
+    paper_bgcolor='rgba(10, 10, 10, 0.95)',
+    font=dict(color='white'),
+    legend=dict(
+        font=dict(color='white'),
+        orientation='h',
+        xanchor='center', x=0.5, y=-0.4,
+        bgcolor='rgba(255, 255, 255, 0.1)',
+        bordercolor='white', borderwidth=1
+    ),
+    margin=dict(l=60, r=60, t=80, b=100),
+    hovermode='x',
+    dragmode='zoom',
+    autosize=True
+)
 # 1. 数据获取与预处理
 ts.set_token('69e781cb04e2be652812ccf4adf976dc2cb8b592d1ceb4c4b6732e22')
 def fetch_and_preprocess_data(ETF, asset,start, end):
