@@ -738,9 +738,6 @@ if st.button('运行优化'):
         overall_contrib = overall_contrib.reset_index()
         overall_contrib = overall_contrib.sort_values(by='Date', ascending=False)
         
-        # 导出数据
-        overall_contrib.to_csv('overall_contribution.csv', index=False)
-        overall_contrib.to_excel('overall_contribution.xlsx', index=False)
         
         # 可视化
         import plotly.express as px
