@@ -537,8 +537,8 @@ def visualize_results(title,benchmark,weights_history, portfolio_returns, risk_f
         )
 
         fig.update_layout(
-            autosize=True,
-            responsive=True
+            width="100%",  # 使用百分比宽度
+            height=500  # 固定高度
         )
 
         return fig
