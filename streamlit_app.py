@@ -432,6 +432,7 @@ def visualize_results(title,benchmark,weights_history, portfolio_returns, risk_f
             title=title,
             title_font=dict(size=30, family='Arial Black'),
             title_x=0.25,
+            width="100%",
             height=height,
             template='plotly_white',
             hovermode='x unified',
@@ -535,12 +536,7 @@ def visualize_results(title,benchmark,weights_history, portfolio_returns, risk_f
             showarrow=False,  # 不显示箭头
             font=dict(size=12, color="gray")  # 设置字体大小和颜色
         )
-
-        fig.update_layout(
-            width="100%",  # 使用百分比宽度
-            height=500  # 固定高度
-        )
-
+        
         return fig
 
 
