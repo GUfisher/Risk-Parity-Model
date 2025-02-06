@@ -782,7 +782,6 @@ with col2:
             # 绘制累计收益贡献图
             fig2 = px.line(overall_contrib_long, x='Date', y='Cumulative_Return', color='Asset',
                           title='资产细分表现',template='plotly_white')
-            st.plotly_chart(fig2)
             
             
         else:
@@ -795,6 +794,7 @@ with col2:
             st.plotly_chart(fig_bar)
 
 try:
+    st.plotly_chart(fig2)
     st.dataframe(final_table_percent)
 except:
     pass
