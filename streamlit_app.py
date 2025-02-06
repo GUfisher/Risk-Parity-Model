@@ -536,6 +536,11 @@ def visualize_results(title,benchmark,weights_history, portfolio_returns, risk_f
             font=dict(size=12, color="gray")  # 设置字体大小和颜色
         )
 
+        fig.update_layout(
+            autosize=True,
+            responsive=True
+        )
+
         return fig
 
 
