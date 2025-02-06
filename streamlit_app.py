@@ -788,7 +788,7 @@ with col2:
             fig_pie,fig_bar=visualize_results('基于ETF的风险平价','等权',
             weights_history, portfolio_returns, risk_free_rate, returns,
             volatility_history, risk_contributions_history, rolling_mode, window_size,
-            volatility_threshold=0.05, height=650, important_dates=important_dates,y_offset=1.08)
+            volatility_threshold=0.05, height=700, important_dates=important_dates,y_offset=1.08)
             
             st.plotly_chart(fig_pie)
             st.plotly_chart(fig_bar)
