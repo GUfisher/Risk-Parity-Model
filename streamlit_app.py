@@ -616,7 +616,7 @@ def visualize_results(title,benchmark,weights_history, portfolio_returns, risk_f
 # 主函数
 
 # 自定义CSS，调整布局提高总宽度
-
+st.set_page_config(layout="wide")
 st.title('ETF 投资组合优化应用')
 
 # 参数说明
