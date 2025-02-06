@@ -481,7 +481,7 @@ def visualize_results(title,benchmark,weights_history, portfolio_returns, risk_f
 
         # Add summary table as annotation
         fig.add_annotation(
-            x=1.34,
+            x=1.32,
             y=0.3,
             xref="paper",
             yref="paper",
@@ -514,7 +514,7 @@ def visualize_results(title,benchmark,weights_history, portfolio_returns, risk_f
 
         # 在可视化函数中显示等权组合的业绩评价
         fig.add_annotation(
-            x=1.36,
+            x=1.34,
             y=0.11,  # 根据布局调整 y 位置
             xref="paper",
             yref="paper",
