@@ -630,7 +630,7 @@ st.sidebar.markdown("""
 - **再平衡天数**: 再平衡的频率。
 """)
 
-col1,col2=st.columns([1,2])
+col1,col2=st.columns([1,1.5])
 with col1:
     # 用户输入
     ETF = {
