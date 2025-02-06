@@ -630,166 +630,171 @@ st.sidebar.markdown("""
 - **再平衡天数**: 再平衡的频率。
 """)
 
-
-# 用户输入
-ETF = {
-    '沪深300ETF': '510300.SH',
-    '标普ETF': '513500.SH',
-    '黄金ETF': '518880.SH',
-    '印度LOF-FOF': '164824.SZ',
-    '日经225ETF': '513880.SH',
-    '德国（DAX）ETF': '513030.SH',
-    '中国国债ETF': '511010.SH',
-    '大宗商品QDII-LOF': '160216.SZ',
-}
-
-# 多选框选择ETF
-selected_etfs = st.multiselect(
-    '选择您感兴趣的ETF',
-    options=list(ETF.keys()),
-    default=list(ETF.keys())  # 默认选中所有ETF
-)
-
-# 配置ETF代码
-selected_etf_codes = {name: ETF[name] for name in selected_etfs}
-
-start_date = st.date_input('开始日期', value=pd.to_datetime('2023-10-01'))
-end_date = st.date_input('结束日期', value=pd.to_datetime('2099-12-31'))
-risk_free_rate = st.number_input('无风险利率（年化）', value=0.02) / 252
-rolling_mode = st.checkbox('使用滚动窗口优化', value=True)
-window_size = st.number_input('滚动窗口大小', value=66)
-step_size = st.number_input('再平衡天数', value=22)
-alpha = st.number_input('Alpha', value=0.0)
-beta = st.number_input('Beta', value=1.0)
-
-
-if st.button('运行优化'):
-    returns = fetch_and_preprocess_data(selected_etf_codes, 'FD', start_date.strftime('%Y%m%d'), end_date.strftime('%Y%m%d'))
-    returns = round(returns / 100, 4)
+col1,col2=st.columns([1,2])
+with col1:
+    # 用户输入
+    ETF = {
+        '沪深300ETF': '510300.SH',
+        '标普ETF': '513500.SH',
+        '黄金ETF': '518880.SH',
+        '印度LOF-FOF': '164824.SZ',
+        '日经225ETF': '513880.SH',
+        '德国（DAX）ETF': '513030.SH',
+        '中国国债ETF': '511010.SH',
+        '大宗商品QDII-LOF': '160216.SZ',
+    }
     
-    weights_history, portfolio_returns, volatility_history, risk_contributions_history = optimize_portfolio(
-        returns, risk_free_rate, alpha, beta, rolling_mode, window_size, step_size
+    # 多选框选择ETF
+    selected_etfs = st.multiselect(
+        '选择您感兴趣的ETF',
+        options=list(ETF.keys()),
+        default=list(ETF.keys())  # 默认选中所有ETF
     )
     
-    # 重要事件
-    important_dates = [
-        {'date': '2024-09-23', 'event': "中国 '牛市'"},
-        {'date': '2020-02-24', 'event': '新冠'},
-    ]
+    # 配置ETF代码
+    selected_etf_codes = {name: ETF[name] for name in selected_etfs}
+    
+    start_date = st.date_input('开始日期', value=pd.to_datetime('2023-10-01'))
+    end_date = st.date_input('结束日期', value=pd.to_datetime('2099-12-31'))
+    risk_free_rate = st.number_input('无风险利率（年化）', value=0.02) / 252
+    rolling_mode = st.checkbox('使用滚动窗口优化', value=True)
+    window_size = st.number_input('滚动窗口大小', value=66)
+    step_size = st.number_input('再平衡天数', value=22)
+    alpha = st.number_input('Alpha', value=0.0)
+    beta = st.number_input('Beta', value=1.0)
 
-    if rolling_mode ==True:
-        fig=visualize_results('基于ETF的风险平价','等权',
-        weights_history, portfolio_returns, risk_free_rate, returns,
-        volatility_history, risk_contributions_history, rolling_mode, window_size,
-        volatility_threshold=0.05, height=650, important_dates=important_dates,y_offset=1.08)
+with col2:
+    if st.button('运行优化'):
+        returns = fetch_and_preprocess_data(selected_etf_codes, 'FD', start_date.strftime('%Y%m%d'), end_date.strftime('%Y%m%d'))
+        returns = round(returns / 100, 4)
         
-        st.plotly_chart(fig)
+        weights_history, portfolio_returns, volatility_history, risk_contributions_history = optimize_portfolio(
+            returns, risk_free_rate, alpha, beta, rolling_mode, window_size, step_size
+        )
         
-        # 确保索引对齐
-        weights_history = weights_history.loc[returns.index]
-        returns = returns.loc[weights_history.index]
-        risk_contributions_history = risk_contributions_history.loc[weights_history.index]
-        
-        # 计算每个资产的每日收益贡献
-        asset_return_contribution = weights_history * returns
-        
-        # 组合的每日收益
-        portfolio_returns = (weights_history * returns).sum(axis=1)
-        
-        # 组合的累计收益
-        cumulative_portfolio_returns = (1 + portfolio_returns).cumprod() - 1
-        
-        # 合并数据框
-        data = pd.concat({
-            'Weight': weights_history,
-            'Return': returns,
-            'Return_Contribution': asset_return_contribution,
-            'Risk_Contribution': risk_contributions_history
-        }, axis=1)
-        
-        # 将列转换为MultiIndex
-        data.columns = pd.MultiIndex.from_product([['Weight', 'Return', 'Return_Contribution', 'Risk_Contribution'], data.columns.levels[1]])
-        
-        # 将数据框转换为长格式
-        data_long = data.stack().reset_index()
-        data_long.columns = ['Date', 'Asset', 'Return', 'Return_Contribution','Risk_Contribution','Weight']
-        
-        # 创建组合收益数据框
-        portfolio_data = pd.DataFrame({
-            'Date': portfolio_returns.index,
-            'Portfolio_Return': portfolio_returns,
-            'Cumulative_Portfolio_Return': cumulative_portfolio_returns
-        })
-        
-        # 将组合收益数据重复以匹配每个资产
-        portfolio_data = portfolio_data.merge(data_long[['Date', 'Asset']], on='Date', how='left')
-        portfolio_data = portfolio_data.drop_duplicates()
-        
-        # 合并到长格式数据框
-        final_table = data_long.merge(portfolio_data, on=['Date', 'Asset'], how='left')
-        
-        # 重命名列
-        final_table.rename(columns={
-            'Value': 'Value',
-            'Portfolio_Return': 'Portfolio_Daily_Return',
-            'Cumulative_Portfolio_Return': 'Portfolio_Cumulative_Return'
-        }, inplace=True)
-        
-        for i in final_table.columns.to_list():
-            try:
-                final_table[i]=final_table[i].astype('float')
-            except:
-                pass
-        
-        final_table=round(final_table,4)
-        final_table['Date']=pd.to_datetime(final_table['Date'])
-        final_table['Date']=final_table['Date'].apply(lambda x:x.strftime('%Y%m%d'))    
-        # 按日期和资产排序
-        final_table.sort_values(by=['Date', 'Asset'], inplace=True,ascending=False)
-        
-        def to_percent(x):
-            if isinstance(x, (int, float)):
-                return f"{x * 100:.2f}%"
-            return x
-        
-        # 对数据框中的每个元素应用 to_percent 函数
-        final_table_percent = final_table.applymap(to_percent)
+        # 重要事件
+        important_dates = [
+            {'date': '2024-09-23', 'event': "中国 '牛市'"},
+            {'date': '2020-02-24', 'event': '新冠'},
+        ]
+    
+        if rolling_mode ==True:
+            fig=visualize_results('基于ETF的风险平价','等权',
+            weights_history, portfolio_returns, risk_free_rate, returns,
+            volatility_history, risk_contributions_history, rolling_mode, window_size,
+            volatility_threshold=0.05, height=650, important_dates=important_dates,y_offset=1.08)
+            
+            st.plotly_chart(fig)
+            
+            # 确保索引对齐
+            weights_history = weights_history.loc[returns.index]
+            returns = returns.loc[weights_history.index]
+            risk_contributions_history = risk_contributions_history.loc[weights_history.index]
+            
+            # 计算每个资产的每日收益贡献
+            asset_return_contribution = weights_history * returns
+            
+            # 组合的每日收益
+            portfolio_returns = (weights_history * returns).sum(axis=1)
+            
+            # 组合的累计收益
+            cumulative_portfolio_returns = (1 + portfolio_returns).cumprod() - 1
+            
+            # 合并数据框
+            data = pd.concat({
+                'Weight': weights_history,
+                'Return': returns,
+                'Return_Contribution': asset_return_contribution,
+                'Risk_Contribution': risk_contributions_history
+            }, axis=1)
+            
+            # 将列转换为MultiIndex
+            data.columns = pd.MultiIndex.from_product([['Weight', 'Return', 'Return_Contribution', 'Risk_Contribution'], data.columns.levels[1]])
+            
+            # 将数据框转换为长格式
+            data_long = data.stack().reset_index()
+            data_long.columns = ['Date', 'Asset', 'Return', 'Return_Contribution','Risk_Contribution','Weight']
+            
+            # 创建组合收益数据框
+            portfolio_data = pd.DataFrame({
+                'Date': portfolio_returns.index,
+                'Portfolio_Return': portfolio_returns,
+                'Cumulative_Portfolio_Return': cumulative_portfolio_returns
+            })
+            
+            # 将组合收益数据重复以匹配每个资产
+            portfolio_data = portfolio_data.merge(data_long[['Date', 'Asset']], on='Date', how='left')
+            portfolio_data = portfolio_data.drop_duplicates()
+            
+            # 合并到长格式数据框
+            final_table = data_long.merge(portfolio_data, on=['Date', 'Asset'], how='left')
+            
+            # 重命名列
+            final_table.rename(columns={
+                'Value': 'Value',
+                'Portfolio_Return': 'Portfolio_Daily_Return',
+                'Cumulative_Portfolio_Return': 'Portfolio_Cumulative_Return'
+            }, inplace=True)
+            
+            for i in final_table.columns.to_list():
+                try:
+                    final_table[i]=final_table[i].astype('float')
+                except:
+                    pass
+            
+            final_table=round(final_table,4)
+            final_table['Date']=pd.to_datetime(final_table['Date'])
+            final_table['Date']=final_table['Date'].apply(lambda x:x.strftime('%Y%m%d'))    
+            # 按日期和资产排序
+            final_table.sort_values(by=['Date', 'Asset'], inplace=True,ascending=False)
+            
+            def to_percent(x):
+                if isinstance(x, (int, float)):
+                    return f"{x * 100:.2f}%"
+                return x
+            
+            # 对数据框中的每个元素应用 to_percent 函数
+            final_table_percent = final_table.applymap(to_percent)
+    
+            # 数据透视
+            data = final_table.pivot(index='Date', columns='Asset', values='Return_Contribution')
+            
+            # 计算累计收益贡献
+            overall_contrib = pd.DataFrame(index=data.index)
+            for asset in data.columns:
+                overall_contrib[asset] = (1 + data[asset]).cumprod() - 1
+            
+            # 处理缺失值
+            overall_contrib = overall_contrib.dropna()
+            
+            # 重置索引并排序
+            overall_contrib = overall_contrib.reset_index()
+            overall_contrib = overall_contrib.sort_values(by='Date', ascending=False)
+            
+            
+            # 可视化
+            import plotly.express as px
+            
+            # 转换为长格式
+            overall_contrib_long = overall_contrib.melt(id_vars='Date', var_name='Asset', value_name='Cumulative_Return')
+            overall_contrib_long['Date'] = pd.to_datetime(overall_contrib_long['Date'])
+            
+            # 绘制累计收益贡献图
+            fig2 = px.line(overall_contrib_long, x='Date', y='Cumulative_Return', color='Asset',
+                          title='资产细分表现',template='plotly_white')
+            st.plotly_chart(fig2)
+            
+            
+        else:
+            fig_pie,fig_bar=visualize_results('基于ETF的风险平价','等权',
+            weights_history, portfolio_returns, risk_free_rate, returns,
+            volatility_history, risk_contributions_history, rolling_mode, window_size,
+            volatility_threshold=0.05, height=650, important_dates=important_dates,y_offset=1.08)
+            
+            st.plotly_chart(fig_pie)
+            st.plotly_chart(fig_bar)
 
-        # 数据透视
-        data = final_table.pivot(index='Date', columns='Asset', values='Return_Contribution')
-        
-        # 计算累计收益贡献
-        overall_contrib = pd.DataFrame(index=data.index)
-        for asset in data.columns:
-            overall_contrib[asset] = (1 + data[asset]).cumprod() - 1
-        
-        # 处理缺失值
-        overall_contrib = overall_contrib.dropna()
-        
-        # 重置索引并排序
-        overall_contrib = overall_contrib.reset_index()
-        overall_contrib = overall_contrib.sort_values(by='Date', ascending=False)
-        
-        
-        # 可视化
-        import plotly.express as px
-        
-        # 转换为长格式
-        overall_contrib_long = overall_contrib.melt(id_vars='Date', var_name='Asset', value_name='Cumulative_Return')
-        overall_contrib_long['Date'] = pd.to_datetime(overall_contrib_long['Date'])
-        
-        # 绘制累计收益贡献图
-        fig2 = px.line(overall_contrib_long, x='Date', y='Cumulative_Return', color='Asset',
-                      title='资产细分表现',template='plotly_white')
-        st.plotly_chart(fig2)
-        st.dataframe(final_table_percent)
-        
-        
-    else:
-        fig_pie,fig_bar=visualize_results('基于ETF的风险平价','等权',
-        weights_history, portfolio_returns, risk_free_rate, returns,
-        volatility_history, risk_contributions_history, rolling_mode, window_size,
-        volatility_threshold=0.05, height=650, important_dates=important_dates,y_offset=1.08)
-        
-        st.plotly_chart(fig_pie)
-        st.plotly_chart(fig_bar)
+try:
+    st.dataframe(final_table_percent)
+except:
+    pass
