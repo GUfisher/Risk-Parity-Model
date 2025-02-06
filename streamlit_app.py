@@ -432,7 +432,6 @@ def visualize_results(title,benchmark,weights_history, portfolio_returns, risk_f
             title=title,
             title_font=dict(size=30, family='Arial Black'),
             title_x=0.25,
-            width="100%",
             height=height,
             template='plotly_white',
             hovermode='x unified',
